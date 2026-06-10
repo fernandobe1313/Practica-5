@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { Saludo } from './components/Saludo';
 import { Saludo2 } from './components/Saludo2';
+import { Perfil } from './components/Perfil';
 
 /* Zona2: Main - hogar de los componentes*/
 export default function App() {
@@ -11,6 +12,11 @@ export default function App() {
 
 
       <Text> ---------------------------------------- Componente Propio Nativos --------------------------------------  </Text>
+
+
+      <Text>Repaso de componentes </Text>
+      <Perfil></Perfil>
+
 
       <Image source={require('./assets/wave.png')} />
       <Text>Hola mundo React Native</Text>
@@ -40,3 +46,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+
+
+
+
+
+
+

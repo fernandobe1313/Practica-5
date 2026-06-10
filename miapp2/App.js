@@ -17,9 +17,12 @@ export default function App() {
 
       <Text> ---------------------------------------- Componente Propio Simple --------------------------------------  </Text>
 
+
       <Saludo></Saludo>
 
+
       <Text> ---------------------------------------- Componente Propio Compuesto--------------------------------------  </Text>
+
 
       <Saludo2></Saludo2>
 

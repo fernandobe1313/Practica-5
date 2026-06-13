@@ -14,9 +14,6 @@ export default function App() {
 
       <Perfil nombre="Fernando Daniel Bello García" carrera="Ingeniería en Sistemas Computacionales" materia="Programación Móvil" cuatri="9°" />
 
-      <Text> ------------------------------------------------------------------------------------------------------------------------------</Text>
-      <Text> ------------------------------------------------------------------------------------------------------------------------------</Text>
-
       <Perfil
         nombre="Fernando Daniel Bello García"
         carrera="Desarrollo de Software"

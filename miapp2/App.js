@@ -12,14 +12,17 @@ export default function App() {
   return (
     <View style={styles.container}>
 
-      <Perfil nombre="Fernando Daniel Bello García" carrera="Ingeniería en Sistemas Computacionales" materia="Programación Móvil" cuatri="9°" />
+      <Perfil estiloExt={styles.tarjetaRoja} nombre="Fernando Daniel Bello García" carrera="Ingeniería en Sistemas Computacionales" materia="Programación Móvil" cuatri="9°" />
 
       <Perfil
+        estiloExt={styles.terjetaVerde}
         nombre="Fernando Daniel Bello García"
         carrera="Desarrollo de Software"
         materia="Programación para Dispositivos Móviles"
         cuatri="7°"
       />
+
+      <Perfil estiloExt={styles.tarjetaRoja} nombre="Fernando Daniel" carrera="Ingeniería en Sistemas Computacionales" materia="Programación Móvil" cuatri="9°" />
 
 
       <StatusBar style="auto" />
@@ -59,13 +62,28 @@ export default function App() {
 // }
 
 /* Zona3: Estilos y posicionamiento */
-const styles = StyleSheet.create({
+/* const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
+});
+ */
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'flex-start',
+    justifyContent: 'space-evenly',
+    flexDirection: 'row'
+  },
+
+  tarjetaRoja: { backgroundColor: '#FF6B6B', },
+
+  terjetaVerde: { backgroundColor: '#6BCB77', }
 });
 
 

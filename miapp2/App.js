@@ -1,14 +1,40 @@
 /* Zona1: importaciones de componentes de archivos*/
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image } from 'react-native';
-import { Saludo } from './components/Saludo';
-import { Saludo2 } from './components/Saludo2';
-import { Perfil } from './components/Perfil';
+import { StyleSheet, Text, View } from 'react-native';
+import Menuscreen from './screens/MenuScreen';
+
+
 
 /* Zona2: Main - hogar de los componentes*/
 
 
 export default function App() {
+  return (
+    <View style={styles.container}>
+
+      <Menuscreen></Menuscreen>
+
+      <StatusBar style="auto" />
+
+    </View>
+  );
+}
+
+
+/* Zona3: Estilos y posicionamiento */
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column'
+  }
+});
+
+
+
+/* export default function App() {
   return (
     <View style={styles.container}>
 
@@ -29,7 +55,7 @@ export default function App() {
 
     </View>
   );
-}
+} */
 
 
 // export default function App() {
@@ -61,7 +87,7 @@ export default function App() {
 //   );
 // }
 
-/* Zona3: Estilos y posicionamiento */
+
 /* const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -72,7 +98,7 @@ export default function App() {
 });
  */
 
-const styles = StyleSheet.create({
+/* const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -85,7 +111,7 @@ const styles = StyleSheet.create({
 
   terjetaVerde: { backgroundColor: '#6BCB77', }
 });
-
+ */
 
 
 

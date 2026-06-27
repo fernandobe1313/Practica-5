@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modal & Bottom Sheet · React Native</title>
+<style>
+  :root{--bg:#07111f;--card:#111f35;--ink:#eaf2ff;--muted:#9fb2cc;--cyan:#35d9f2;--green:#55e09b;--amber:#ffcf5a;--pink:#ff5fa2;--blue:#2f7df6}
+  *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif;overflow-x:hidden}
+  nav{position:fixed;z-index:10;right:18px;top:50%;transform:translateY(-50%);display:grid;gap:7px}
+  nav a{width:34px;height:28px;border:1px solid #244360;border-radius:10px;color:var(--muted);display:grid;place-items:center;text-decoration:none;background:#09182a99;backdrop-filter:blur(10px);font-size:11px}
+  .slide{min-height:100vh;position:relative;padding:46px 86px;overflow:hidden;background-image:linear-gradient(90deg,#10243d55 1px,transparent 1px),linear-gradient(#10243d55 1px,transparent 1px);background-size:112px 86px;scroll-snap-align:start}
+  .slide main{min-height:calc(100vh - 92px);display:grid;grid-template-columns:1.06fr .94fr;gap:48px;align-items:center}
+  .kicker{color:var(--cyan);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  h1{font-size:clamp(42px,5vw,78px);line-height:.95;margin:10px 0 22px;letter-spacing:0}
+  .lead{font-size:clamp(19px,2vw,27px);line-height:1.35;color:var(--muted);max-width:760px}
+  .meta{position:absolute;left:86px;right:86px;bottom:28px;color:#6f86a6;font-size:12px;display:flex;justify-content:space-between}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:30px}
+  .mini{background:linear-gradient(135deg,#12243b,#0d1a2c);border:1px solid #244360;border-radius:16px;padding:18px;color:#ddecff;box-shadow:0 18px 40px #0005;animation:rise .8s both;overflow-wrap:anywhere}
+  .link-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:28px;max-width:860px}
+  .link-card{min-height:104px;background:linear-gradient(135deg,#12243b,#0d1a2c);border:1px solid #244360;border-radius:16px;padding:18px 20px;color:#ddecff;text-decoration:none;box-shadow:0 18px 40px #0005;display:flex;flex-direction:column;justify-content:center;gap:8px;overflow:hidden;animation:rise .8s both}
+  .link-card strong{font-size:20px;line-height:1.1;color:#fff}
+  .link-card span{font-size:15px;color:var(--muted);line-height:1.2}
+  .link-card em{font-style:normal;color:var(--cyan);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  pre{margin-top:32px;background:#040b14;border:1px solid #244360;border-radius:18px;padding:24px;box-shadow:0 22px 60px #0008;overflow:auto}
+  code{font:18px/1.45 Consolas,monospace;color:#d9e8ff}
+  .table{margin-top:30px;border:1px solid #244360;border-radius:18px;overflow:hidden}
+  .table div{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #244360}.table div:last-child{border-bottom:0}
+  .table span{padding:14px 16px;color:#ddecff}.table div:first-child span{background:var(--blue);font-weight:800}
+  .visual{display:grid;place-items:center;min-height:520px}
+  .phone{width:330px;height:585px;border-radius:42px;background:#06101d;border:3px solid #335273;box-shadow:0 0 0 10px #0b172a,0 40px 110px #000c,0 0 90px #35d9f233;position:relative;animation:float 5s ease-in-out infinite}
+  .screen{position:absolute;inset:26px 20px;border-radius:28px;background:#eff6ff;overflow:hidden}
+  .status{height:48px;background:#0c1729}.app-card{width:80%;height:132px;margin:38px auto;border-radius:18px;background:linear-gradient(135deg,#fff,#dce9ff);box-shadow:0 18px 30px #1234}
+  .app-name{position:absolute;top:13px;left:24px;color:var(--cyan);font-weight:800;font-size:14px;z-index:3}
+  .modal-card{position:absolute;left:43px;right:43px;top:205px;height:138px;border-radius:20px;background:white;box-shadow:0 22px 70px #0007;animation:pop 2.4s ease-in-out infinite}
+  .bottom-sheet{position:absolute;left:0;right:0;bottom:0;height:210px;border-radius:28px 28px 0 0;background:white;box-shadow:0 -22px 70px #0006;animation:sheet 3s ease-in-out infinite}
+  .modal-card span,.bottom-sheet span{display:block;height:18px;border-radius:9px;background:#dbeafe;margin:22px}
+  .modal-card span:last-child,.bottom-sheet span:last-child{background:linear-gradient(90deg,var(--cyan),var(--blue))}
+  .orb{position:absolute;border-radius:50%;filter:blur(20px);opacity:.35;animation:pulse 4s ease-in-out infinite}.one{width:260px;height:260px;right:7%;top:10%;background:var(--cyan)}.two{width:220px;height:220px;left:7%;bottom:8%;background:var(--pink);animation-delay:1s}
+  @keyframes float{50%{transform:translateY(-18px) rotate(-1deg)}} @keyframes pop{50%{transform:scale(1.04);box-shadow:0 30px 90px #0008}} @keyframes sheet{0%,100%{transform:translateY(52px)}50%{transform:translateY(0)}} @keyframes pulse{50%{opacity:.55;transform:scale(1.1)}} @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  @media(max-width:900px){nav{display:none}.slide{padding:36px 24px}.slide main{grid-template-columns:1fr}.visual{min-height:420px}.phone{transform:scale(.78);animation:none}.meta{left:24px;right:24px}.grid,.link-grid{grid-template-columns:1fr}h1{font-size:44px}}
+</style>
+</head>
+<body><nav><a href="#s1">01</a><a href="#s2">02</a><a href="#s3">03</a><a href="#s4">04</a><a href="#s5">05</a><a href="#s6">06</a><a href="#s7">07</a><a href="#s8">08</a><a href="#s9">09</a><a href="#s10">10</a><a href="#s11">11</a><a href="#s12">12</a><a href="#s13">13</a><a href="#s14">14</a><a href="#s15">15</a><a href="#s16">16</a><a href="#s17">17</a><a href="#s18">18</a><a href="#s19">19</a><a href="#s20">20</a><a href="#s21">21</a><a href="#s22">22</a><a href="#s23">23</a><a href="#s24">24</a><a href="#s25">25</a><a href="#s26">26</a><a href="#s27">27</a><a href="#s28">28</a><a href="#s29">29</a><a href="#s30">30</a><a href="#s31">31</a><a href="#s32">32</a><a href="#s33">33</a><a href="#s34">34</a><a href="#s35">35</a><a href="#s36">36</a><a href="#s37">37</a><a href="#s38">38</a><a href="#s39">39</a><a href="#s40">40</a><a href="#s41">41</a><a href="#s42">42</a><a href="#s43">43</a><a href="#s44">44</a><a href="#s45">45</a><a href="#s46">46</a><a href="#s47">47</a><a href="#s48">48</a><a href="#s49">49</a><a href="#s50">50</a><a href="#s51">51</a><a href="#s52">52</a><a href="#s53">53</a><a href="#s54">54</a><a href="#s55">55</a><a href="#s56">56</a></nav>
+      <section class="slide sheet" id="s1">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>01</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Modal &amp; Bottom Sheet</h1>
+            <p class="lead">Patrones de interfaz, state, props y una implementacion educativa lista para presentar.</p>
+            
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s2">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>02</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Ruta de aprendizaje</h1>
+            <p class="lead">De concepto a implementacion: primero entendemos los patrones, luego los conectamos con state y cerramos con el guion de practica.</p>
+            <div class="grid"><div class="mini">Contexto de miapp2</div><div class="mini">Modal nativo</div><div class="mini">Bottom Sheet</div><div class="mini">State y flujo</div><div class="mini">Practica de 40 min</div><div class="mini">Reparto de 3 personas</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s3">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>03</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Contexto real del proyecto</h1>
+            <p class="lead">`miapp2` usa Expo, React 19.1.0 y React Native 0.81.5. No tiene libreria de Bottom Sheet instalada.</p>
+            
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s4">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>04</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Modal: una capa por encima de la pantalla</h1>
+            <p class="lead">Un Modal presenta contenido encima de la vista actual para confirmar, advertir o enfocar una tarea corta.</p>
+            <div class="grid"><div class="mini">Interrupcion alta</div><div class="mini">Ideal para decisiones importantes</div><div class="mini">Incluido en react-native</div><div class="mini">Controlado por visible + state</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s5">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>05</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Ejemplo visual: confirmar una reserva</h1>
+            <p class="lead">El usuario conserva el contexto de la clase, pero la decision queda al centro: cancelar o confirmar.</p>
+            <pre><code>&lt;Modal visible={modalVisible} transparent animationType=&quot;fade&quot; /&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s6">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>06</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Props mas usadas de Modal</h1>
+            <p class="lead">Estas props cubren casi todos los casos introductorios y son suficientes para una practica clara.</p>
+            <div class="table"><div><span>visible</span><span>boolean</span><span>Muestra u oculta el modal</span></div><div><span>animationType</span><span>none | slide | fade</span><span>Define la animacion</span></div><div><span>transparent</span><span>boolean</span><span>Permite overlay personalizado</span></div><div><span>onRequestClose</span><span>function</span><span>Cierra desde sistema/Android</span></div><div><span>onShow</span><span>function</span><span>Corre al abrirse</span></div><div><span>onDismiss</span><span>function</span><span>Corre al cerrarse en iOS</span></div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s7">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>07</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>State: el interruptor del Modal</h1>
+            <p class="lead">El Modal no se abre solo: el boton cambia un estado y React vuelve a renderizar la interfaz.</p>
+            <pre><code>const [modalVisible, setModalVisible] = useState(false);
+
+&lt;Pressable onPress={() =&gt; setModalVisible(true)}&gt;
+  &lt;Text&gt;Confirmar reserva&lt;/Text&gt;
+&lt;/Pressable&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s8">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>08</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Flujo interno de apertura y cierre</h1>
+            <p class="lead">El usuario pulsa, cambia el estado, aparece la capa; despues cancelar, confirmar o el boton de atras cierran el Modal.</p>
+            
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s9">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>09</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Bottom Sheet: opciones desde abajo</h1>
+            <p class="lead">Un Bottom Sheet aparece desde la parte inferior. Es menos intrusivo que un Modal y funciona muy bien para opciones rapidas.</p>
+            <div class="grid"><div class="mini">Interrupcion media</div><div class="mini">Mantiene mas contexto</div><div class="mini">Ideal para filtros y acciones</div><div class="mini">No viene como componente oficial en react-native</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s10">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>10</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Ejemplo visual: elegir modalidad</h1>
+            <p class="lead">El panel inferior permite elegir Presencial, En linea o Grabacion sin abandonar la pantalla de reserva.</p>
+            <pre><code>&lt;BottomSheet visible={sheetVisible} title=&quot;Elige modalidad&quot; height={330}&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s11">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>11</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Modal vs Bottom Sheet</h1>
+            <p class="lead">La decision de diseno depende de la urgencia, el contexto y el tipo de accion que se pide.</p>
+            <div class="table"><div><span>Criterio</span><span>Modal</span><span>Bottom Sheet</span></div><div><span>Posicion</span><span>Centro o pantalla completa</span><span>Parte inferior</span></div><div><span>Interrupcion</span><span>Alta</span><span>Media</span></div><div><span>Uso ideal</span><span>Confirmar o alertar</span><span>Elegir opciones</span></div><div><span>Contexto</span><span>Menos visible</span><span>Mas visible</span></div><div><span>Practica</span><span>Confirmar reserva</span><span>Elegir modalidad</span></div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s12">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>12</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Arquitectura de la practica</h1>
+            <p class="lead">La pantalla combina dos capas de interfaz y cuatro estados principales.</p>
+            
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s13">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>13</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Props creadas para el Bottom Sheet</h1>
+            <p class="lead">Como no instalamos librerias, creamos un componente propio con una API sencilla y explicable.</p>
+            <div class="table"><div><span>visible</span><span>Abre o cierra el panel</span></div><div><span>onClose</span><span>Funcion para cerrar</span></div><div><span>title</span><span>Encabezado visible</span></div><div><span>height</span><span>Altura del sheet</span></div><div><span>children</span><span>Contenido interno</span></div><div><span>closeOnBackdropPress</span><span>Cerrar tocando fuera</span></div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s14">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>14</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Animacion con Animated.Value</h1>
+            <p class="lead">El truco esta en mover el panel en el eje Y: cerrado abajo, abierto en cero.</p>
+            <pre><code>const translateY = useRef(new Animated.Value(height)).current;
+
+Animated.timing(translateY, {
+  toValue: visible ? 0 : height,
+  duration: visible ? 250 : 200,
+  useNativeDriver: true,
+}).start();</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s15">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>15</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Practica guiada de 40 minutos</h1>
+            <p class="lead">La sesion esta pensada para construir por partes y explicar cada decision.</p>
+            <div class="grid"><div class="mini">0-5 · Introduccion</div><div class="mini">5-15 · Modal nativo</div><div class="mini">15-28 · Bottom Sheet</div><div class="mini">28-36 · State e integracion</div><div class="mini">36-40 · Cierre y preguntas</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s16">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>16</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Division equitativa entre 3 personas</h1>
+            <p class="lead">Cada expositor tiene un bloque tecnico y narrativo claro.</p>
+            <div class="grid"><div class="mini">Persona 1 · Modal nativo · Concepto, props y confirmacion</div><div class="mini">Persona 2 · Bottom Sheet · Componente propio y animacion</div><div class="mini">Persona 3 · State · Integracion, demo y cierre</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s17">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>17</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Paso 1: imports correctos</h1>
+            <p class="lead">La practica necesita hooks de React, componentes de React Native y StatusBar de Expo.</p>
+            <pre><code>import { useEffect, useRef, useState } from &#039;react&#039;;
+import { StatusBar } from &#039;expo-status-bar&#039;;
+import { Animated, Modal, Pressable, StyleSheet, Text, View } from &#039;react-native&#039;;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s18">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>18</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Paso 2: estados principales</h1>
+            <p class="lead">Cuatro estados controlan toda la experiencia de la pantalla.</p>
+            <pre><code>const [modalVisible, setModalVisible] = useState(false);
+const [sheetVisible, setSheetVisible] = useState(false);
+const [selectedMode, setSelectedMode] = useState(&#039;Presencial&#039;);
+const [reservationConfirmed, setReservationConfirmed] = useState(false);</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s19">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>19</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Paso 3: estructura visual base</h1>
+            <p class="lead">La pantalla muestra una clase, la modalidad elegida y el estado de la reserva.</p>
+            <pre><code>&lt;Text&gt;Modalidad: {selectedMode}&lt;/Text&gt;
+&lt;Text&gt;Estado: {reservationConfirmed ? &#039;Confirmada&#039; : &#039;Pendiente&#039;}&lt;/Text&gt;
+
+&lt;Pressable onPress={() =&gt; setSheetVisible(true)}&gt;
+  &lt;Text&gt;Elegir modalidad&lt;/Text&gt;
+&lt;/Pressable&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s20">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>20</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Paso 4: Modal de confirmacion</h1>
+            <p class="lead">El Modal valida la accion antes de marcar la reserva como confirmada.</p>
+            <pre><code>&lt;Modal visible={modalVisible} animationType=&quot;fade&quot; transparent onRequestClose={() =&gt; setModalVisible(false)}&gt;
+  &lt;View style={styles.overlay}&gt;
+    &lt;View style={styles.modalCard}&gt;
+      &lt;Text&gt;Confirmar reserva&lt;/Text&gt;
+    &lt;/View&gt;
+  &lt;/View&gt;
+&lt;/Modal&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s21">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>21</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Paso 5: BottomSheet educativo</h1>
+            <p class="lead">El componente recibe props y renderiza contenido flexible con children.</p>
+            <pre><code>function BottomSheet({ visible, onClose, title, height = 320, children }) {
+  return (
+    &lt;Modal visible={visible} transparent animationType=&quot;none&quot;&gt;
+      &lt;Animated.View style={{ height, transform: [{ translateY }] }}&gt;
+        {children}
+      &lt;/Animated.View&gt;
+    &lt;/Modal&gt;
+  );
+}</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s22">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>22</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Paso 6: seleccionar modalidad</h1>
+            <p class="lead">Cada opcion actualiza la modalidad, reinicia la confirmacion y cierra el panel.</p>
+            <pre><code>function selectMode(mode) {
+  setSelectedMode(mode);
+  setReservationConfirmed(false);
+  setSheetVisible(false);
+}</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s23">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>23</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Errores comunes y correcciones</h1>
+            <p class="lead">Estos problemas son ideales para explicar durante la demo si algo falla.</p>
+            <div class="grid"><div class="mini">Modal siempre abierto · useState(true) · Iniciar en false</div><div class="mini">No cierra en Android · Falta onRequestClose · Agregar setModalVisible(false)</div><div class="mini">Sheet invisible · Sin height o visible · Revisar props y estado</div><div class="mini">Animacion no se nota · Propiedad no compatible · Animar transform</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s24">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>24</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Guion de video de apoyo</h1>
+            <p class="lead">El video puede durar entre 8 y 12 minutos y sirve como respaldo para la exposicion.</p>
+            <div class="grid"><div class="mini">Tema y archivo</div><div class="mini">Que es Modal</div><div class="mini">Implementar Modal</div><div class="mini">Que es Bottom Sheet</div><div class="mini">Animacion</div><div class="mini">State</div><div class="mini">Comparacion</div><div class="mini">Cierre</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s25">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>25</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Preguntas para activar al grupo</h1>
+            <p class="lead">Usalas durante el cierre para verificar que el concepto quedo claro.</p>
+            <div class="grid"><div class="mini">Que prop controla si el Modal aparece?</div><div class="mini">Por que useState y no una variable normal?</div><div class="mini">Cuando conviene usar Bottom Sheet?</div><div class="mini">Por que reiniciamos reservationConfirmed?</div><div class="mini">Que hace onRequestClose en Android?</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s26">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>26</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Como leer esta practica</h1>
+            <p class="lead">La presentacion funciona como mapa de exposicion: concepto, ejemplo visual, props, state, codigo y demo.</p>
+            <div class="grid"><div class="mini">Concepto · Que problema resuelve el patron.</div><div class="mini">Visual · Como se ve en una app movil.</div><div class="mini">Codigo · Como se expresa en React Native.</div><div class="mini">Demo · Que accion realiza el usuario.</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s27">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>27</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Por que no instalar librerias aqui</h1>
+            <p class="lead">La practica debe durar 40 minutos. Instalar librerias de gestos y reanimated puede consumir la clase.</p>
+            <div class="grid"><div class="mini">Proyecto actual · No trae @gorhom/bottom-sheet.</div><div class="mini">Objetivo · Aprender el patron antes de depender de una libreria.</div><div class="mini">Ruta limpia · Modal nativo + Animated.</div><div class="mini">Version avanzada · Gorhom para una segunda practica.</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s28">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>28</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Modal en apps de chat</h1>
+            <p class="lead">En una app tipo mensajeria, un Modal suele aparecer para confirmar borrar un mensaje, reportar un contacto o salir de un grupo.</p>
+            <div class="grid"><div class="mini">Eliminar mensaje</div><div class="mini">Bloquear contacto</div><div class="mini">Salir del grupo</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s29">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>29</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Bottom Sheet en apps sociales</h1>
+            <p class="lead">En una app tipo red social, el Bottom Sheet es ideal para compartir, guardar, reportar o abrir opciones de una publicacion.</p>
+            <div class="grid"><div class="mini">Compartir</div><div class="mini">Guardar</div><div class="mini">Reportar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s30">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>30</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Bottom Sheet en e-commerce</h1>
+            <p class="lead">El panel inferior permite elegir talla, cantidad, envio o metodo de pago sin abandonar el producto.</p>
+            <div class="grid"><div class="mini">Talla</div><div class="mini">Cantidad</div><div class="mini">Envio</div><div class="mini">Pago</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s31">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>31</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Bottom Sheet en mapas</h1>
+            <p class="lead">Las apps de mapas lo usan para mostrar detalles de un lugar mientras el mapa sigue visible atras.</p>
+            <div class="grid"><div class="mini">Ruta</div><div class="mini">Horario</div><div class="mini">Calificacion</div><div class="mini">Guardar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s32">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>32</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Modal en banca movil</h1>
+            <p class="lead">Cuando una accion es sensible, como confirmar una transferencia, un Modal obliga a revisar antes de continuar.</p>
+            <div class="grid"><div class="mini">Monto</div><div class="mini">Destino</div><div class="mini">Confirmar</div><div class="mini">Cancelar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s33">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>33</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>WhatsApp: Modal para eliminar mensaje</h1>
+            <p class="lead">En una app de mensajeria como WhatsApp, un Modal ayuda a confirmar acciones delicadas: eliminar, bloquear o reportar.</p>
+            <div class="grid"><div class="mini">Eliminar para mi</div><div class="mini">Eliminar para todos</div><div class="mini">Cancelar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                <div class="app-name">WhatsApp</div>
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s34">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>34</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Instagram: Bottom Sheet de opciones</h1>
+            <p class="lead">En una red social como Instagram, el Bottom Sheet aparece para compartir, guardar, reportar o abrir acciones de una publicacion.</p>
+            <div class="grid"><div class="mini">Compartir</div><div class="mini">Guardar</div><div class="mini">Reportar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                <div class="app-name">Instagram</div>
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s35">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>35</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>TikTok: acciones rapidas desde abajo</h1>
+            <p class="lead">En apps de video corto, el panel inferior permite compartir, denunciar, guardar o enviar sin abandonar el contenido.</p>
+            <div class="grid"><div class="mini">Enviar</div><div class="mini">Guardar</div><div class="mini">No me interesa</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                <div class="app-name">TikTok</div>
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s36">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>36</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Google Maps: detalles de un lugar</h1>
+            <p class="lead">En una app de mapas, el Bottom Sheet mantiene visible el mapa mientras muestra informacion del sitio seleccionado.</p>
+            <div class="grid"><div class="mini">Como llegar</div><div class="mini">Guardar</div><div class="mini">Compartir</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                <div class="app-name">Google Maps</div>
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s37">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>37</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Amazon: seleccionar variante</h1>
+            <p class="lead">En e-commerce, el Bottom Sheet permite elegir talla, color, cantidad o envio antes de agregar al carrito.</p>
+            <div class="grid"><div class="mini">Talla M</div><div class="mini">Cantidad 1</div><div class="mini">Agregar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                <div class="app-name">Amazon</div>
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide modal" id="s38">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>38</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Banca movil: Modal de confirmacion</h1>
+            <p class="lead">En apps bancarias, el Modal reduce errores al confirmar monto, destinatario y accion antes de ejecutar.</p>
+            <div class="grid"><div class="mini">Revisar monto</div><div class="mini">Confirmar</div><div class="mini">Cancelar</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                <div class="app-name">BBVA / banca movil</div>
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s39">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>39</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Videos/GIFs de internet: criterio de uso</h1>
+            <p class="lead">Se buscaron clips y GIFs de apps populares. Para evitar usar capturas sin permiso, se integran como referencias web y se recrean animaciones educativas en el HTML.</p>
+            <div class="grid"><div class="mini">No descargar al PPTX · Videos de apps populares suelen ser material de terceros.</div><div class="mini">Usar links · Mejor abrir ejemplos oficiales o de soporte en vivo.</div><div class="mini">HTML animado · La version HTML incluye pantallas que se mueven tipo GIF.</div><div class="mini">PPTX limpio · Mantiene ilustraciones editables y sin material no autorizado.</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s40">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>40</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Links para mostrar videos/referencias en vivo</h1>
+            <p class="lead">Estos enlaces sirven como apoyo para abrir durante la presentacion si quieren mostrar el comportamiento real de apps o guias oficiales.</p>
+            <div class="link-grid"><a class="link-card" href="https://faq.whatsapp.com/1370476507114859/" target="_blank" rel="noreferrer">
+            <strong>WhatsApp</strong>
+            <span>Eliminar mensajes</span>
+            <em>faq.whatsapp.com</em>
+          </a><a class="link-card" href="https://m3.material.io/components/bottom-sheets/overview" target="_blank" rel="noreferrer">
+            <strong>Material Design</strong>
+            <span>Bottom sheets</span>
+            <em>m3.material.io</em>
+          </a><a class="link-card" href="https://m3.material.io/components/dialogs/overview" target="_blank" rel="noreferrer">
+            <strong>Material Design</strong>
+            <span>Dialogs</span>
+            <em>m3.material.io</em>
+          </a><a class="link-card" href="https://support.google.com/maps/answer/144339" target="_blank" rel="noreferrer">
+            <strong>Google Maps</strong>
+            <span>Rutas y opciones</span>
+            <em>support.google.com</em>
+          </a><a class="link-card" href="https://help.instagram.com/" target="_blank" rel="noreferrer">
+            <strong>Instagram</strong>
+            <span>Centro de ayuda</span>
+            <em>help.instagram.com</em>
+          </a></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s41">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>41</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>HTML: ejemplos animados tipo GIF</h1>
+            <p class="lead">En el archivo HTML, las pantallas de WhatsApp, Instagram, TikTok, Maps, Amazon y banca se animan como microclips: Modal aparece, Bottom Sheet sube y el contenido mantiene contexto.</p>
+            <div class="grid"><div class="mini">Animacion directa en navegador</div><div class="mini">Sin descargar videos de terceros</div><div class="mini">Mismo diseno visual del deck</div><div class="mini">Ideal para proyectar durante la exposicion</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s42">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>42</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Como decidir: Modal o Bottom Sheet</h1>
+            <p class="lead">Una regla simple: si el usuario debe detenerse y decidir, Modal. Si necesita elegir una opcion manteniendo contexto, Bottom Sheet.</p>
+            <div class="grid"><div class="mini">Accion critica</div><div class="mini">Confirmacion obligatoria</div><div class="mini">Error o advertencia</div><div class="mini">Datos sensibles</div><div class="mini">Opciones rapidas</div><div class="mini">Filtros</div><div class="mini">Compartir</div><div class="mini">Detalles complementarios</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s43">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>43</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: importaciones</h1>
+            <p class="lead">Esta primera captura explica por que necesitamos hooks, Modal, Animated y Pressable.</p>
+            <pre><code>import { useEffect, useRef, useState } from &#039;react&#039;;
+import { StatusBar } from &#039;expo-status-bar&#039;;
+import {
+  Animated,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from &#039;react-native&#039;;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s44">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>44</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: estados</h1>
+            <p class="lead">Estos estados son el centro de la demo. La interfaz cambia porque ellos cambian.</p>
+            <pre><code>const [modalVisible, setModalVisible] = useState(false);
+const [sheetVisible, setSheetVisible] = useState(false);
+const [selectedMode, setSelectedMode] = useState(&#039;Presencial&#039;);
+const [reservationConfirmed, setReservationConfirmed] = useState(false);</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s45">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>45</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: prop visible</h1>
+            <p class="lead">`visible` conecta el estado con el componente nativo Modal.</p>
+            <pre><code>&lt;Modal
+  visible={modalVisible}
+  animationType=&quot;fade&quot;
+  transparent
+  onRequestClose={() =&gt; setModalVisible(false)}
+&gt;
+  {/* contenido */}
+&lt;/Modal&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s46">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>46</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: confirmacion</h1>
+            <p class="lead">La accion de confirmar cambia dos estados: marca la reserva y cierra el Modal.</p>
+            <pre><code>&lt;Pressable
+  onPress={() =&gt; {
+    setReservationConfirmed(true);
+    setModalVisible(false);
+  }}
+&gt;
+  &lt;Text&gt;Confirmar&lt;/Text&gt;
+&lt;/Pressable&gt;</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide sheet" id="s47">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>47</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: componente BottomSheet</h1>
+            <p class="lead">La API propia del componente se entiende desde sus props.</p>
+            <pre><code>function BottomSheet({
+  visible,
+  onClose,
+  title,
+  height = 320,
+  closeOnBackdropPress = true,
+  children,
+}) {
+  // cuerpo del componente
+}</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="bottom-sheet">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s48">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>48</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: animacion del sheet</h1>
+            <p class="lead">El movimiento se logra animando `translateY`, una propiedad compatible con useNativeDriver.</p>
+            <pre><code>Animated.timing(translateY, {
+  toValue: visible ? 0 : height,
+  duration: visible ? 250 : 200,
+  useNativeDriver: true,
+}).start();</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s49">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>49</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Captura de codigo: seleccionar opcion</h1>
+            <p class="lead">Cada opcion del Bottom Sheet actualiza la modalidad y reinicia la confirmacion.</p>
+            <pre><code>function selectMode(mode) {
+  setSelectedMode(mode);
+  setReservationConfirmed(false);
+  setSheetVisible(false);
+}</code></pre>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s50">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>50</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Microinteracciones que debe notar el grupo</h1>
+            <p class="lead">Estas pequenas decisiones hacen que la practica se sienta como una app real.</p>
+            <div class="grid"><div class="mini">Overlay · Oscurece la pantalla y enfoca la atencion.</div><div class="mini">Handle · La barra superior sugiere que el sheet se puede mover.</div><div class="mini">Feedback · El texto Estado cambia a Confirmada.</div><div class="mini">Cierre · Cancelar, confirmar o tocar fuera.</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s51">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>51</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Accesibilidad y usabilidad</h1>
+            <p class="lead">Aunque la practica es introductoria, conviene mencionar que los patrones deben ser claros y cerrables.</p>
+            <div class="grid"><div class="mini">Salida clara · Siempre debe existir una forma visible de cerrar.</div><div class="mini">Texto directo · El usuario debe entender que esta decidiendo.</div><div class="mini">Contraste · Overlay y tarjetas deben leerse bien.</div><div class="mini">No abusar · Demasiados modales vuelven pesada la app.</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s52">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>52</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Demo sugerida: minuto a minuto</h1>
+            <p class="lead">Una guia visual para que la exposicion no se sienta improvisada.</p>
+            <div class="grid"><div class="mini">1 · Mostrar pantalla base</div><div class="mini">2 · Abrir Bottom Sheet</div><div class="mini">3 · Cambiar modalidad</div><div class="mini">4 · Abrir Modal</div><div class="mini">5 · Confirmar reserva</div><div class="mini">6 · Explicar state final</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s53">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>53</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Guion extendido por persona</h1>
+            <p class="lead">Cada integrante puede apoyarse en estas frases para mantener la presentacion equilibrada.</p>
+            <div class="grid"><div class="mini">Persona 1 · Explica Modal, props visibles y confirmacion.</div><div class="mini">Persona 2 · Explica Bottom Sheet, Animated y children.</div><div class="mini">Persona 3 · Explica state, flujo, demo y cierre.</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s54">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>54</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Resultado final en navegador</h1>
+            <p class="lead">Asi se vera la practica al terminar: una pantalla de reserva con botones para abrir el Bottom Sheet y el Modal.</p>
+            <div class="grid"><div class="mini">Modalidad: Presencial</div><div class="mini">Estado: Pendiente</div><div class="mini">Bottom Sheet: elegir modalidad</div><div class="mini">Modal: confirmar reserva</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s55">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>55</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Cierre: la idea central</h1>
+            <p class="lead">Modal confirma. Bottom Sheet ofrece opciones. State conecta la accion del usuario con lo que se ve en pantalla.</p>
+            <div class="grid"><div class="mini">Modal = foco y decision</div><div class="mini">Bottom Sheet = opciones rapidas</div><div class="mini">State = memoria de la UI</div><div class="mini">Animated = movimiento visual</div><div class="mini">ModalScreen.js = lugar recomendado</div></div>
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+      <section class="slide flow" id="s56">
+        <div class="orb one"></div><div class="orb two"></div>
+        <div class="meta">React Native · Modal & Bottom Sheet <b>56</b></div>
+        <main>
+          <div class="copy">
+            <p class="kicker">Practica guiada · 40 minutos</p>
+            <h1>Fuentes y trazabilidad</h1>
+            <p class="lead">La presentacion se basa en documentacion oficial y en la guia creada para la practica.</p>
+            
+          </div>
+          <div class="visual">
+            <div class="phone">
+              <div class="screen">
+                <div class="status"></div>
+                
+                <div class="app-card"></div>
+                <div class="modal-card">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section></body></html>
